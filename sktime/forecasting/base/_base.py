@@ -40,6 +40,7 @@ from warnings import warn
 
 import numpy as np
 import pandas as pd
+import pywatts.core.base
 from sklearn import clone
 
 from sktime.base import BaseEstimator
@@ -66,7 +67,7 @@ def _coerce_to_list(obj):
         return obj
 
 
-class BaseForecaster(BaseEstimator):
+class BaseForecaster(BaseEstimator, pywatts.core.base.BaseEstimator):
     """Base forecaster template class.
 
     The base forecaster specifies the methods and method
@@ -88,6 +89,12 @@ class BaseForecaster(BaseEstimator):
         "X-y-must-have-same-index": True,  # can estimator handle different X/y index?
         "enforce_index_type": None,  # index type that needs to be enforced in X/y
     }
+
+    def __call__(self, window_length=0, fh=1, **kwargs):
+        self.fh2 = fh
+        self.window_length = window_length
+        super().__call__(**kwargs)
+
 
     def __init__(self):
         self._is_fitted = False
@@ -137,6 +144,7 @@ class BaseForecaster(BaseEstimator):
         self : Reference to self.
         """
         # check y is not None
+        y = y.to_pandas()
         assert y is not None, "y cannot be None, but found None"
 
         # if fit is called, fitted state is re-set
@@ -166,6 +174,16 @@ class BaseForecaster(BaseEstimator):
         self._is_fitted = True
 
         return self
+
+    def transform(self,
+        y=None,
+    ):
+        # pandas -> xarray problem
+        y = y.to_pandas()
+        y.index.freq = pd.infer_freq(y.index)
+        self.cutoff._set_freq(y.index[-1].freq)
+        return self.predict(fh=self.fh2).to_xarray()
+
 
     def predict(
         self,
