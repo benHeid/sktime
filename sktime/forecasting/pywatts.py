@@ -6,7 +6,7 @@ from sktime.forecasting.base import BaseForecaster
 from sktime.transformations.base import BaseTransformer
 
 
-class pyWATTSWrapper(BaseEstimator):
+class pyWATTSWrapper(BaseTransformer):
 
     def __init__(self, pipeline):
         self.pipeline = pipeline
@@ -19,7 +19,7 @@ class pyWATTSWrapper(BaseEstimator):
         return xr.Dataset(result).to_pandas()
 
     # todo: implement this, mandatory
-    def fit(self, X=None):
+    def fit(self,X=None, y=None):
         """Fit forecaster to training data.
 
         private _fit containing the core logic, called from fit
@@ -51,32 +51,4 @@ class pyWATTSWrapper(BaseEstimator):
         assert isinstance(X, pd.DataFrame)
         # TODO how to handle X and y here? How to select column here?
         self.pipeline.train(X.to_xarray())
-
-    def transform(self, X=None):
-        """Forecast time series at future horizon.
-
-        private _predict containing the core logic, called from predict
-
-        State required:
-            Requires state to be "fitted".
-
-        Accesses in self:
-            Fitted model attributes ending in "_"
-            self.cutoff
-
-        Parameters
-        ----------
-        fh : guaranteed to be ForecastingHorizon or None, optional (default=None)
-            The forecasting horizon with the steps ahead to to predict.
-            If not passed in _fit, guaranteed to be passed here
-        X : optional (default=None)
-            guaranteed to be of a type in self.get_tag("X_inner_mtype")
-            Exogeneous time series for the forecast
-
-        Returns
-        -------
-        y_pred : pd.Series
-            Point predictions
-        """
-        result = self.pipeline.test(X)
-        return result
+        self._is_fitted = True
