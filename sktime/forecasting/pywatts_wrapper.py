@@ -10,6 +10,10 @@ class pyWATTSWrapper(BaseTransformer):
 
     def __init__(self, pipeline):
         self.pipeline = pipeline
+        self._tags = {
+            "X_inner_mtype": "pd.DataFrame",
+                             "fit_is_empty": False,
+        }
         super().__init__()
 
     def _transform(self, X, y=None):
@@ -19,7 +23,7 @@ class pyWATTSWrapper(BaseTransformer):
         return xr.Dataset(result).to_pandas()
 
     # todo: implement this, mandatory
-    def fit(self,X=None, y=None):
+    def _fit(self,X=None, y=None):
         """Fit forecaster to training data.
 
         private _fit containing the core logic, called from fit
@@ -51,4 +55,3 @@ class pyWATTSWrapper(BaseTransformer):
         assert isinstance(X, pd.DataFrame)
         # TODO how to handle X and y here? How to select column here?
         self.pipeline.train(X.to_xarray())
-        self._is_fitted = True
